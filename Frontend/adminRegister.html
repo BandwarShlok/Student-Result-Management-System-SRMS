@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Registration | SRMS</title>
+
+<style>
+* {
+  box-sizing: border-box;
+  font-family: Poppins, system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  height: 100vh;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.card {
+  background: #fff;
+  width: 380px;
+  padding: 30px;
+  border-radius: 18px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 14px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #1e40af;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+  <h2>Admin Register</h2>
+
+  <input id="email" placeholder="Admin Email">
+  <input id="password" type="password" placeholder="Password">
+  <input id="secretKey" placeholder="Secret Key">
+
+  <button onclick="registerAdmin()">Register Admin</button>
+</div>
+
+<script>
+async function registerAdmin() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const secretKey = document.getElementById("secretKey").value;
+
+  if (!email || !password || !secretKey) {
+    alert("All fields are required");
+    return;
+  }
+
+  try {
+    const res = await fetch("http://localhost:5000/api/auth/admin-register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, secretKey })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.message);
+      return;
+    }
+
+    alert("Admin registered successfully");
+    window.location.href = "Index.html";
+
+  } catch (err) {
+    alert("Server error");
+  }
+}
+</script>
+
+</body>
+</html>

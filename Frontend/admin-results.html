@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin | Add / Update Result</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Poppins, Arial, sans-serif;
+  background: #f4f7fb;
+}
+
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 240px;
+  background: #1e293b;
+  color: white;
+  padding: 25px;
+}
+
+.sidebar a {
+  display: block;
+  color: #cbd5f5;
+  text-decoration: none;
+  margin: 14px 0;
+}
+
+.content {
+  flex: 1;
+  padding: 40px;
+}
+
+.card {
+  max-width: 600px;
+  margin: auto;
+  background: white;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+input, select, button {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+}
+
+button {
+  background: #2563eb;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+button.secondary {
+  background: #16a34a;
+}
+
+ul {
+  padding-left: 18px;
+}
+
+li {
+  margin-bottom: 6px;
+}
+.subject-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.subject-actions button {
+  padding: 2px 6px;
+  font-size: 12px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+}
+
+.subject-actions .edit {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.subject-actions .delete {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="layout">
+  <div class="sidebar">
+    <h2>Admin Panel</h2>
+    <a href="admin.html">Dashboard</a>
+    <a href="adminstudent.html">Students</a>
+    <a href="admin-results.html">Results</a>
+  </div>
+
+  <div class="content">
+    <div class="card">
+      <h2>Add / Update Result</h2>
+
+      <select id="studentSelect"></select>
+      <input id="semester" type="number" placeholder="Semester">
+
+      <hr>
+
+      <input id="subjectName" placeholder="Subject Name">
+      <input id="marks" type="number" placeholder="Marks (0-100)">
+      <button class="secondary" onclick="addSubject()">Add Subject</button>
+
+      <ul id="subjectList"></ul>
+
+      <hr>
+
+      <button onclick="saveResult()">Save Result</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = "http://localhost:5000/api";
+let subjects = [];
+
+/* LOAD STUDENTS */
+async function loadStudents() {
+  const res = await fetch(`${API}/students`);
+  const students = await res.json();
+
+  const select = document.getElementById("studentSelect");
+  select.innerHTML = `<option value="">Select Student</option>`;
+
+  students.forEach(s => {
+    const opt = document.createElement("option");
+    opt.value = s.studentId;
+    opt.textContent = `${s.studentId} - ${s.name}`;
+    select.appendChild(opt);
+  });
+}
+
+/*  LOAD EXISTING RESULT  */
+async function loadExistingResult() {
+  const studentId = document.getElementById("studentSelect").value;
+  const semester = Number(document.getElementById("semester").value);
+
+  if (!studentId || !semester) return;
+
+  const res = await fetch(`${API}/results`);
+  const results = await res.json();
+
+  const existing = results.find(
+    r => r.studentId === studentId && r.semester === semester
+  );
+
+  subjects = [];
+  document.getElementById("subjectList").innerHTML = "";
+
+  if (existing) {
+    existing.subjects.forEach(sub => subjects.push(sub));
+  }
+
+  renderSubjects();
+}
+
+/*  RENDER SUBJECTS */
+function renderSubjects() {
+  const list = document.getElementById("subjectList");
+  list.innerHTML = "";
+
+  subjects.forEach((s, i) => {
+    list.innerHTML += `
+      <li class="subject-row">
+        <span>${s.subjectName} - ${s.marks}</span>
+        <span class="subject-actions">
+          <button class="edit" onclick="editSubject(${i})">Edit</button>
+          <button class="delete" onclick="deleteSubject(${i})">Delete</button>
+        </span>
+      </li>
+    `;
+  });
+}
+
+
+
+/*  ADD SUBJECT */
+function addSubject() {
+  const subjectName = document.getElementById("subjectName").value.trim();
+  const marks = Number(document.getElementById("marks").value);
+
+  if (!subjectName || marks < 0 || marks > 100) {
+    alert("Enter valid subject and marks");
+    return;
+  }
+
+  subjects.push({
+    subjectCode: "SUB" + (subjects.length + 1),
+    subjectName,
+    marks
+  });
+
+  document.getElementById("subjectName").value = "";
+  document.getElementById("marks").value = "";
+
+  renderSubjects();
+}
+
+/*  EDIT SUBJECT  */
+function editSubject(index) {
+  const newMarks = prompt(
+    "Edit marks:",
+    subjects[index].marks
+  );
+
+  if (newMarks === null) return;
+
+  const marks = Number(newMarks);
+  if (marks < 0 || marks > 100) {
+    alert("Invalid marks");
+    return;
+  }
+
+  subjects[index].marks = marks;
+  renderSubjects();
+}
+
+/*  DELETE SUBJECT  */
+function deleteSubject(index) {
+  if (!confirm("Delete this subject?")) return;
+  subjects.splice(index, 1);
+  renderSubjects();
+}
+
+
+/*  SAVE RESULT (NO RELOAD) */
+async function saveResult() {
+  const studentId = document.getElementById("studentSelect").value;
+  const semester = Number(document.getElementById("semester").value);
+
+  if (!studentId || !semester || subjects.length === 0) {
+    alert("Fill all fields and add subjects");
+    return;
+  }
+
+  const payload = { studentId, semester, subjects };
+
+  await fetch(`${API}/results/add-or-update`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+
+  alert("Result saved successfully");
+
+  // soft refresh
+  await loadExistingResult();
+}
+
+/*  EVENTS  */
+document.getElementById("studentSelect")
+  .addEventListener("change", loadExistingResult);
+
+document.getElementById("semester")
+  .addEventListener("input", loadExistingResult);
+
+/* INIT */
+loadStudents();
+</script>
+
+</body>
+</html>

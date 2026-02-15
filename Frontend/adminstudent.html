@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Admin | Students</title>
+
+  <style>
+    :root {
+      --primary: #2563eb;
+      --bg: #f4f7fb;
+      --card: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: Poppins, system-ui, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+    }
+
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background: #1e293b;
+      color: white;
+      padding: 25px;
+    }
+
+    .sidebar h3 {
+      margin-bottom: 30px;
+    }
+
+    .sidebar a {
+      display: block;
+      color: #cbd5f5;
+      text-decoration: none;
+      margin: 14px 0;
+    }
+
+    .sidebar a:hover {
+      color: white;
+    }
+
+
+    .container {
+      max-width: 1000px;
+      margin: 40px auto;
+      background: var(--card);
+      padding: 30px;
+      border-radius: 18px;
+      box-shadow: 0 12px 25px rgba(0, 0, 0, 0.08);
+    }
+
+    h2 {
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th {
+      background: #eef2ff;
+      padding: 14px;
+    }
+
+    td {
+      padding: 14px;
+      text-align: center;
+      border-top: 1px solid #e5e7eb;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="layout">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h3>Admin Panel</h3>
+    <a href="admin.html">Dashboard</a>
+    <a href="adminstudent.html">Students</a>
+    <a href="admin-results.html">Results</a>
+  </div>
+
+  <div class="container">
+    <h2>Students List</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Student ID</th>
+          <th>Email</th>
+          <th>Course</th>
+          <th>Department</th>
+          <th>Semester</th>
+        </tr>
+      </thead>
+      <tbody id="studentTable">
+        <tr>
+          <td colspan="5">Loading students...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    fetch("http://localhost:5000/api/students")
+      .then(res => res.json())
+      .then(students => {
+        const table = document.getElementById("studentTable");
+        table.innerHTML = "";
+
+        if (students.length === 0) {
+          table.innerHTML =
+            "<tr><td colspan='5'>No students found</td></tr>";
+          return;
+        }
+
+        students.forEach(s => {
+          table.innerHTML += `
+        <tr>
+          <td>${s.studentId}</td>
+          <td>${s.email}</td>
+          <td>${s.course}</td>
+          <td>${s.department}</td>
+          <td>${s.semester}</td>
+        </tr>
+      `;
+        });
+      })
+      .catch(() => alert("Failed to load students"));
+  </script>
+
+</body>
+
+</html>

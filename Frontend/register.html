@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Student Registration</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Poppins, sans-serif;
+  background: #f4f7fb;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.card {
+  background: white;
+  padding: 30px;
+  width: 380px;
+  border-radius: 18px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+button:hover {
+  background: #1e4fd6;
+}
+
+.link {
+  text-align: center;
+  margin-top: 15px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+  <h2>Student Register</h2>
+
+  <input id="studentId" placeholder="Student ID">
+  <input id="name" placeholder="Full Name">
+  <input id="email" placeholder="Email">
+  <input id="phone" placeholder="Phone">
+  <input id="course" placeholder="Course">
+  <input id="department" placeholder="Department">
+  <input id="semester" type="number" placeholder="Semester">
+  <input id="password" type="password" placeholder="Password">
+
+  <button onclick="registerStudent()">Register</button>
+
+  <div class="link">
+    <a href="Index.html">Already have an account? Login</a>
+  </div>
+</div>
+<script>
+const API = "http://localhost:5000/api/auth";
+
+async function registerStudent() {
+  const studentId = document.getElementById("studentId").value.trim();
+  const name = document.getElementById("name").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+  const course = document.getElementById("course").value.trim();
+  const department = document.getElementById("department").value.trim();
+  const semester = document.getElementById("semester").value;
+  const password = document.getElementById("password").value;
+
+  if (
+    !studentId ||
+    !name ||
+    !email ||
+    !phone ||
+    !course ||
+    !department ||
+    !semester ||
+    !password
+  ) {
+    alert("All fields are required");
+    return;
+  }
+
+  const res = await fetch(`${API}/student-register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      studentId,
+      name,
+      email,
+      phone,
+      course,
+      department,
+      semester,
+      password
+    })
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    alert(data.message || "Registration failed");
+    return;
+  }
+
+  alert("Registration successful");
+  window.location.href = "Index.html";
+}
+</script>
+
+
+</body>
+</html>

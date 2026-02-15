@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>My Result</title>
+
+<style>
+:root {
+  --primary: #2563eb;
+  --bg: #f4f7fb;
+  --card: #ffffff;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --pass-bg: #dcfce7;
+  --pass-text: #166534;
+  --fail-bg: #fee2e2;
+  --fail-text: #991b1b;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: Poppins, Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+}
+
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 240px;
+  background: #1e293b;
+  color: white;
+  padding: 25px;
+}
+
+.sidebar a {
+  display: block;
+  color: #cbd5f5;
+  text-decoration: none;
+  margin: 14px 0;
+}
+
+.sidebar a.active {
+  color: white;
+  font-weight: 600;
+}
+
+.content {
+  flex: 1;
+  padding: 30px;
+}
+
+.header {
+  background: var(--card);
+  padding: 22px;
+  border-radius: 16px;
+  margin-bottom: 25px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.card {
+  background: var(--card);
+  padding: 18px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+.card small {
+  color: var(--muted);
+}
+
+.card h2 {
+  color: var(--primary);
+}
+
+.table-box {
+  background: var(--card);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  background: #eef2ff;
+  padding: 14px;
+}
+
+td {
+  padding: 14px;
+  text-align: center;
+  border-top: 1px solid #e5e7eb;
+}
+
+.status-pass {
+  background: var(--pass-bg);
+  color: var(--pass-text);
+  padding: 5px 10px;
+  border-radius: 8px;
+}
+
+.status-fail {
+  background: var(--fail-bg);
+  color: var(--fail-text);
+  padding: 5px 10px;
+  border-radius: 8px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="layout">
+  <div class="sidebar">
+    <h3>Student Panel</h3>
+    <a href="student.html">Dashboard</a>
+    <a href="student-result.html" class="active">My Result</a>
+    <a href="student-profile.html">Profile</a>
+  </div>
+
+  <div class="content">
+    <div class="header">
+      <h2>Semester Result</h2>
+      <p id="meta"></p>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <small>SGPA</small>
+        <h2 id="sgpa">0.00</h2>
+      </div>
+      <div class="card">
+        <small>CGPA</small>
+        <h2 id="cgpa">0.00</h2>
+      </div>
+      <div class="card">
+        <small>Overall Result</small>
+        <h2 id="overall">-</h2>
+      </div>
+    </div>
+
+    <div class="table-box">
+      <table id="resultTable">
+        <tr>
+          <th>Subject</th>
+          <th>Marks</th>
+          <th>Grade</th>
+          <th>Status</th>
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = "http://localhost:5000/api";
+const studentId = localStorage.getItem("studentId") || "SI101";
+
+async function loadResult() {
+  const students = await fetch(`${API}/students`).then(r => r.json());
+  const results = await fetch(`${API}/results`).then(r => r.json());
+
+  const student = students.find(s => s.studentId === studentId);
+  const myResults = results.filter(r => r.studentId === studentId);
+  if (!student || myResults.length === 0) return;
+
+  const latestSemester = Math.max(...myResults.map(r => r.semester));
+  const result = myResults.find(r => r.semester === latestSemester);
+
+  document.getElementById("meta").innerText =
+    `Name: ${student.name} | Course: ${student.course} | Semester: ${latestSemester}`;
+
+  const table = document.getElementById("resultTable");
+  table.innerHTML = `
+    <tr>
+      <th>Subject</th>
+      <th>Marks</th>
+      <th>Grade</th>
+      <th>Status</th>
+    </tr>
+  `;
+
+  let total = 0;
+  let pass = true;
+
+  result.subjects.forEach(s => {
+    total += s.marks;
+    if (s.marks < 33) pass = false;
+
+    const grade =
+      s.marks >= 75 ? "A" :
+      s.marks >= 60 ? "B" :
+      s.marks >= 45 ? "C" : "F";
+
+    table.innerHTML += `
+      <tr>
+        <td>${s.subjectName}</td>
+        <td>${s.marks}</td>
+        <td>${grade}</td>
+        <td class="${s.marks >= 33 ? "status-pass" : "status-fail"}">
+          ${s.marks >= 33 ? "Pass" : "Fail"}
+        </td>
+      </tr>
+    `;
+  });
+
+  const sgpa = ((total / (result.subjects.length * 100)) * 10).toFixed(2);
+
+  document.getElementById("sgpa").innerText = sgpa;
+  document.getElementById("cgpa").innerText = sgpa;
+  document.getElementById("overall").innerText = pass ? "PASS" : "FAIL";
+}
+
+loadResult();
+</script>
+
+</body>
+</html>

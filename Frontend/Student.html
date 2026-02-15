@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Student Dashboard</title>
+
+<style>
+:root {
+  --primary: #2563eb;
+  --bg: #f4f7fb;
+  --card: #ffffff;
+  --text: #1f2937;
+  --pass-bg: #dcfce7;
+  --pass-text: #166534;
+  --fail-bg: #fee2e2;
+  --fail-text: #991b1b;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: "Poppins", system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+}
+
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 240px;
+  background: #1e293b;
+  color: white;
+  padding: 25px;
+}
+
+.sidebar h3 {
+  margin-bottom: 30px;
+}
+
+.sidebar a {
+  display: block;
+  color: #cbd5f5;
+  text-decoration: none;
+  margin: 14px 0;
+}
+
+.sidebar a.active {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.content {
+  flex: 1;
+  padding: 30px;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.card {
+  background: var(--card);
+  padding: 22px;
+  border-radius: 18px;
+  box-shadow: 0 12px 25px rgba(0,0,0,0.08);
+}
+
+.card small {
+  color: #6b7280;
+}
+
+.card h2 {
+  color: var(--primary);
+  margin-top: 6px;
+}
+
+.table-box {
+  background: var(--card);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 12px 25px rgba(0,0,0,0.08);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  background: #eef2ff;
+  padding: 14px;
+}
+
+td {
+  padding: 14px;
+  text-align: center;
+  border-top: 1px solid #e5e7eb;
+}
+
+.status-pass {
+  background: var(--pass-bg);
+  color: var(--pass-text);
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.status-fail {
+  background: var(--fail-bg);
+  color: var(--fail-text);
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-weight: 500;
+}
+</style>
+</head>
+
+<body>
+
+<div class="layout">
+  <div class="sidebar">
+    <h3>Student Panel</h3>
+    <a href="student.html" class="active">Dashboard</a>
+    <a href="student-result.html">My Results</a>
+    <a href="student-profile.html">Profile</a>
+  </div>
+
+  <div class="content">
+    <h2 id="welcome">Welcome</h2>
+
+    <div class="cards">
+      <div class="card">
+        <small>CGPA</small>
+        <h2 id="cgpa">0.00</h2>
+      </div>
+      <div class="card">
+        <small>Passed Subjects</small>
+        <h2 id="passed">0</h2>
+      </div>
+      <div class="card">
+        <small>Failed Subjects</small>
+        <h2 id="failed">0</h2>
+      </div>
+      <div class="card">
+        <small>Current Semester</small>
+        <h2 id="semester">-</h2>
+      </div>
+    </div>
+
+    <h3>Semester Results</h3>
+
+    <div class="table-box">
+      <table id="studentResults">
+        <tr>
+          <th>Subject</th>
+          <th>Total Marks</th>
+          <th>Grade</th>
+          <th>Status</th>
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = "http://localhost:5000/api";
+const studentId = localStorage.getItem("studentId") || "SI101";
+
+async function loadDashboard() {
+  // load student name
+  const sRes = await fetch(`${API}/students`);
+  const students = await sRes.json();
+  const student = students.find(s => s.studentId === studentId);
+  if (student) {
+    document.getElementById("welcome").innerText = `Welcome, ${student.name}`;
+  }
+
+  // load results
+  const rRes = await fetch(`${API}/results`);
+  const results = await rRes.json();
+  const myResults = results.filter(r => r.studentId === studentId);
+
+  if (myResults.length === 0) return;
+
+  // latest semester only
+  const latestSemester = Math.max(...myResults.map(r => r.semester));
+  const latestResult = myResults.find(r => r.semester === latestSemester);
+
+  let passed = 0, failed = 0, totalMarks = 0;
+  const table = document.getElementById("studentResults");
+
+  table.innerHTML = `
+    <tr>
+      <th>Subject</th>
+      <th>Total Marks</th>
+      <th>Grade</th>
+      <th>Status</th>
+    </tr>
+  `;
+
+  latestResult.subjects.forEach(s => {
+    totalMarks += s.marks;
+
+    const isPass = s.marks >= 33;
+    isPass ? passed++ : failed++;
+
+    const grade =
+      s.marks >= 75 ? "A" :
+      s.marks >= 60 ? "B" :
+      s.marks >= 45 ? "C" : "F";
+
+    table.innerHTML += `
+      <tr>
+        <td>${s.subjectName}</td>
+        <td>${s.marks}</td>
+        <td>${grade}</td>
+        <td class="${isPass ? "status-pass" : "status-fail"}">
+          ${isPass ? "Pass" : "Fail"}
+        </td>
+      </tr>
+    `;
+  });
+
+  const cgpa = ((totalMarks / (latestResult.subjects.length * 100)) * 10).toFixed(2);
+
+  document.getElementById("cgpa").innerText = cgpa;
+  document.getElementById("passed").innerText = passed;
+  document.getElementById("failed").innerText = failed;
+  document.getElementById("semester").innerText = latestSemester;
+}
+
+loadDashboard();
+</script>
+
+</body>
+</html>
