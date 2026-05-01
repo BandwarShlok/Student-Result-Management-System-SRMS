@@ -1,181 +1,183 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<title>Login | SRMS</title>
+  <meta charset="UTF-8">
+  <title>Login | SRMS</title>
 
-<style>
-* {
-  box-sizing: border-box;
-  font-family: Poppins, system-ui, sans-serif;
-}
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: Poppins, system-ui, sans-serif;
+    }
 
-body {
-  margin: 0;
-  height: 100vh;
-  background: linear-gradient(135deg, #2563eb, #1e40af);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
+    body {
+      margin: 0;
+      height: 100vh;
+      background: linear-gradient(135deg, #2563eb, #1e40af);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
 
-.login-card {
-  background: #fff;
-  width: 360px;
-  padding: 30px;
-  border-radius: 18px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.25);
-}
+    .login-card {
+      background: #fff;
+      width: 360px;
+      padding: 30px;
+      border-radius: 18px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+    }
 
-.login-card h2 {
-  text-align: center;
-  margin-bottom: 20px;
-}
+    .login-card h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
 
-.switch {
-  display: flex;
-  background: #e5e7eb;
-  border-radius: 12px;
-  margin-bottom: 20px;
-  overflow: hidden;
-}
+    .switch {
+      display: flex;
+      background: #e5e7eb;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
 
-.switch div {
-  flex: 1;
-  padding: 10px;
-  text-align: center;
-  cursor: pointer;
-  font-weight: 500;
-}
+    .switch div {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      cursor: pointer;
+      font-weight: 500;
+    }
 
-.switch .active {
-  background: #2563eb;
-  color: white;
-}
+    .switch .active {
+      background: #2563eb;
+      color: white;
+    }
 
-input {
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 14px;
-  border-radius: 10px;
-  border: 1px solid #ccc;
-}
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 14px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+    }
 
-.login-btn {
-  width: 100%;
-  padding: 12px;
-  background: #2563eb;
-  color: white;
-  border: none;
-  border-radius: 12px;
-  font-size: 15px;
-  cursor: pointer;
-}
+    .login-btn {
+      width: 100%;
+      padding: 12px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      cursor: pointer;
+    }
 
-.login-btn:hover {
-  background: #1e40af;
-}
+    .login-btn:hover {
+      background: #1e40af;
+    }
 
-.link {
-  text-align: center;
-  margin-top: 15px;
-}
+    .link {
+      text-align: center;
+      margin-top: 15px;
+    }
 
-.link a {
-  text-decoration: none;
-  color: #2563eb;
-}
-</style>
+    .link a {
+      text-decoration: none;
+      color: #2563eb;
+    }
+  </style>
 </head>
 
 <body>
 
-<div class="login-card">
-  <h2>Login</h2>
+  <div class="login-card">
+    <h2>Login</h2>
 
-  <!-- Role Switch -->
-  <div class="switch">
-    <div id="studentTab" class="active" onclick="setRole('student')">Student</div>
-    <div id="adminTab" onclick="setRole('admin')">Admin</div>
+    <!-- Role Switch -->
+    <div class="switch">
+      <div id="studentTab" class="active" onclick="setRole('student')">Student</div>
+      <div id="adminTab" onclick="setRole('admin')">Admin</div>
+    </div>
+
+    <!-- Inputs -->
+    <input id="userField" placeholder="Student ID">
+    <input id="passwordField" type="password" placeholder="Password">
+
+    <!-- FIXED BUTTON -->
+    <button class="login-btn" onclick="login()">Login</button>
+
+    <div class="link">
+      <a href="register.html">New student? Register</a>
+    </div>
   </div>
 
-  <!-- Inputs -->
-  <input id="userField" placeholder="Student ID">
-  <input id="passwordField" type="password" placeholder="Password">
+  <script>
+    let role = "student";
 
-  <!-- FIXED BUTTON -->
-  <button class="login-btn" onclick="login()">Login</button>
+    function setRole(selectedRole) {
+      role = selectedRole;
 
-  <div class="link">
-    <a href="register.html">New student? Register</a>
-  </div>
-</div>
+      document.getElementById("studentTab").classList.remove("active");
+      document.getElementById("adminTab").classList.remove("active");
 
-<script>
-let role = "student";
-
-function setRole(selectedRole) {
-  role = selectedRole;
-
-  document.getElementById("studentTab").classList.remove("active");
-  document.getElementById("adminTab").classList.remove("active");
-
-  if (role === "student") {
-    document.getElementById("studentTab").classList.add("active");
-    document.getElementById("userField").placeholder = "Student ID";
-  } else {
-    document.getElementById("adminTab").classList.add("active");
-    document.getElementById("userField").placeholder = "Admin Email";
-  }
-}
-
-async function login() {
-  const user = document.getElementById("userField").value.trim();
-  const password = document.getElementById("passwordField").value.trim();
-
-  if (!user || !password) {
-    alert("Please fill all fields");
-    return;
-  }
-
-  let url = "";
-  let body = {};
-
-  if (role === "student") {
-    url = "https://student-result-management-system-srms.onrender.com/api/auth/login";
-    body = { studentId: user, password };
-  } else {
-    url = "https://student-result-management-system-srms.onrender.com/api/auth/admin-login";
-    body = { email: user, password };
-  }
-
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body)
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      alert(data.message);
-      return;
+      if (role === "student") {
+        document.getElementById("studentTab").classList.add("active");
+        document.getElementById("userField").placeholder = "Student ID";
+      } else {
+        document.getElementById("adminTab").classList.add("active");
+        document.getElementById("userField").placeholder = "Admin Email";
+      }
     }
 
-    // ✅ REAL REDIRECT
-    if (data.role === "student") {
-      localStorage.setItem("studentId", data.studentId);
-      window.location.href = "student.html";
-    } else {
-      window.location.href = "admin.html";
-    }
+    async function login() {
+      const user = document.getElementById("userField").value.trim();
+      const password = document.getElementById("passwordField").value.trim();
 
-  } catch (err) {
-    alert("Server error");
-  }
-}
-</script>
+      if (!user || !password) {
+        alert("Please fill all fields");
+        return;
+      }
+
+      let url = "";
+      let body = {};
+
+      if (role === "student") {
+        url = "https://student-result-management-system-srms.onrender.com/api/auth/student-login";
+        body = { studentId: user, password };
+      } else {
+        url = "https://student-result-management-system-srms.onrender.com/api/auth/admin-login";
+        body = { email: user, password };
+      }
+
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body)
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          alert(data.message);
+          return;
+        }
+
+        // ✅ REAL REDIRECT
+        if (data.role === "student") {
+          localStorage.setItem("studentId", data.studentId);
+          window.location.href = "student.html";
+        } else {
+          window.location.href = "admin.html";
+        }
+
+      } catch (err) {
+        alert("Server error");
+      }
+    }
+  </script>
 
 </body>
+
 </html>
