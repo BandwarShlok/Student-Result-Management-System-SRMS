@@ -24,6 +24,10 @@ app.use("/api/students", studentRoutes);
 app.use("/api/results", resultRoutes);
 app.use("/api/admin", adminRoutes);
 
+app.get("/", (req, res) => {
+  res.send("SRMS Backend is Running 🚀");
+});
+
 // Start server
 const PORT = process.env.PORT || 5000;
 

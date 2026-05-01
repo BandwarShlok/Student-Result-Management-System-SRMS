@@ -142,10 +142,10 @@ async function login() {
   let body = {};
 
   if (role === "student") {
-    url = "http://localhost:5000/api/auth/student-login";
+    url = "https://student-result-management-system-srms.onrender.com/api/auth/login";
     body = { studentId: user, password };
   } else {
-    url = "http://localhost:5000/api/auth/admin-login";
+    url = "https://student-result-management-system-srms.onrender.com/api/auth/admin-login";
     body = { email: user, password };
   }
 
