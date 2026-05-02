@@ -81,7 +81,7 @@ async function registerAdmin() {
   }
 
   try {
-    const res = await fetch("http://localhost:5000/api/auth/admin-register", {
+    const res = await fetch("https://student-result-management-system-srms.onrender.com/api/auth/admin-register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password, secretKey })
